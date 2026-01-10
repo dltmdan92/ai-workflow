@@ -1,0 +1,260 @@
+{
+  "name": "DailyStockDigest - Daily Market Briefing",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7,
+              "triggerAtMinute": 40
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [0, 0],
+      "id": "schedule-trigger",
+      "name": "Daily 7:40AM"
+    },
+    {
+      "parameters": {
+        "url": "https://www.marketwatch.com/rss/topstories"
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [250, -300],
+      "id": "rss-marketwatch",
+      "name": "RSS MarketWatch"
+    },
+    {
+      "parameters": {
+        "url": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [250, -150],
+      "id": "rss-wsj",
+      "name": "RSS WSJ"
+    },
+    {
+      "parameters": {
+        "url": "https://www.investing.com/rss/news.rss"
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [250, 0],
+      "id": "rss-investing",
+      "name": "RSS Investing.com"
+    },
+    {
+      "parameters": {
+        "url": "https://www.cnbc.com/id/20910258/device/rss/rss.html"
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [250, 150],
+      "id": "rss-cnbc",
+      "name": "RSS CNBC"
+    },
+    {
+      "parameters": {
+        "url": "https://finance.yahoo.com/news/rssindex"
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "id": "rss-yahoo",
+      "name": "RSS Yahoo Finance"
+    },
+    {
+      "parameters": {
+        "url": "https://www.nasdaq.com/feed/rssoutbound"
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [250, 450],
+      "id": "rss-nasdaq",
+      "name": "RSS Nasdaq"
+    },
+    {
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 6
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [500, 75],
+      "id": "merge-all",
+      "name": "Merge All"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Group items by source based on link domain\nconst marketwatch = [];\nconst wsj = [];\nconst investing = [];\nconst cnbc = [];\nconst yahoo = [];\nconst nasdaq = [];\n\nfor (const item of items) {\n  const data = item.json;\n  const link = data.link || '';\n  \n  const post = {\n    title: data.title || '',\n    summary: (data.contentSnippet || data.content || '').replace(/<[^>]*>/g, '').slice(0, 300),\n    link: link,\n    pubDate: data.pubDate || data.isoDate || ''\n  };\n  \n  if (link.includes('marketwatch.com')) {\n    post.source = 'MarketWatch';\n    marketwatch.push(post);\n  } else if (link.includes('wsj.com') || link.includes('dowjones')) {\n    post.source = 'WSJ';\n    wsj.push(post);\n  } else if (link.includes('investing.com')) {\n    post.source = 'Investing.com';\n    investing.push(post);\n  } else if (link.includes('cnbc.com')) {\n    post.source = 'CNBC';\n    cnbc.push(post);\n  } else if (link.includes('yahoo.com') || link.includes('finance.yahoo')) {\n    post.source = 'Yahoo Finance';\n    yahoo.push(post);\n  } else if (link.includes('nasdaq.com')) {\n    post.source = 'Nasdaq';\n    nasdaq.push(post);\n  }\n}\n\nconst totalCount = marketwatch.length + wsj.length + investing.length + cnbc.length + yahoo.length + nasdaq.length;\n\nreturn [{\n  json: {\n    marketwatch: JSON.stringify(marketwatch.slice(0, 10), null, 2),\n    marketwatchCount: Math.min(marketwatch.length, 10),\n    wsj: JSON.stringify(wsj.slice(0, 10), null, 2),\n    wsjCount: Math.min(wsj.length, 10),\n    investing: JSON.stringify(investing.slice(0, 10), null, 2),\n    investingCount: Math.min(investing.length, 10),\n    cnbc: JSON.stringify(cnbc.slice(0, 10), null, 2),\n    cnbcCount: Math.min(cnbc.length, 10),\n    yahoo: JSON.stringify(yahoo.slice(0, 10), null, 2),\n    yahooCount: Math.min(yahoo.length, 10),\n    nasdaq: JSON.stringify(nasdaq.slice(0, 10), null, 2),\n    nasdaqCount: Math.min(nasdaq.length, 10),\n    totalCount: totalCount,\n    error: totalCount === 0,\n    errorMsg: totalCount === 0 ? 'No articles fetched' : ''\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 75],
+      "id": "combine-data",
+      "name": "Combine Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-count",
+              "leftValue": "={{ $json.totalCount }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [900, 75],
+      "id": "check-valid",
+      "name": "Valid Data?"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-20250514",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-20250514"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=당신은 개인 투자자를 위한 글로벌 시장 뉴스 큐레이터 \"DailyStockDigest\"의 에디터입니다.\n바쁜 직장인 투자자들이 출근 전 가볍게, 하지만 핵심을 놓치지 않도록 읽을 수 있는 Daily Market Briefing을 만들어주세요.\n\n## 오늘의 소스 (6개 채널)\n\n### 📈 MarketWatch - {{ $json.marketwatchCount }}개\n{{ $json.marketwatch }}\n\n### 📰 WSJ Markets - {{ $json.wsjCount }}개\n{{ $json.wsj }}\n\n### 🌍 Investing.com - {{ $json.investingCount }}개\n{{ $json.investing }}\n\n### 📺 CNBC - {{ $json.cnbcCount }}개\n{{ $json.cnbc }}\n\n### 💹 Yahoo Finance - {{ $json.yahooCount }}개\n{{ $json.yahoo }}\n\n### 🏛️ Nasdaq - {{ $json.nasdaqCount }}개\n{{ $json.nasdaq }}\n\n## ⭐ 관심 섹터/테마 (My Focus Areas) - 매우 중요!\n\n### 🤖 AI/반도체\n- AI 칩, GPU, 데이터센터, AI 인프라, 커스텀 실리콘\n- 파운드리, 메모리, 반도체 장비\n\n### 💻 빅테크/클라우드\n- 클라우드 컴퓨팅, SaaS, 빅테크 실적\n- 디지털 광고, 이커머스, 스트리밍\n\n### 🔐 사이버보안/엔터프라이즈\n- 보안 소프트웨어, 제로트러스트, 클라우드 보안\n- 엔터프라이즈 소프트웨어, 데이터 플랫폼\n\n### ⚡ 전기차/에너지\n- EV, 배터리, 자율주행, 충전 인프라\n- 신재생에너지, 원자력, 에너지 저장\n\n### 💊 헬스케어/바이오\n- 신약 개발, FDA 승인, 바이오텍\n- 의료기기, 디지털 헬스케어, GLP-1\n\n### 🏦 거시경제/금융\n- 금리, 인플레이션, 연준 정책\n- 은행, 핀테크, 결제\n\n## 작업 지시\n\n### 1. 📢 섹터별 핵심 뉴스 (Sector Highlights) - 최우선!\n**이 섹션이 가장 중요합니다!**\n- 위 관심 섹터/테마와 관련된 주요 뉴스를 모두 찾아내세요\n- 섹터별로 그룹핑하여 정리\n- 각 뉴스마다:\n  - 🔴/🟡/🟢 시장 영향도 표시 (부정적/중립/긍정적)\n  - 관련 섹터 태그\n  - 뉴스 요약 1줄 + 투자자 관점 코멘트 1줄\n  - 언급된 기업/티커가 있으면 표시\n  - 원문 링크\n- 해당 섹터 뉴스가 없으면 생략\n\n### 2. 오늘의 시장 펄스 (Today's Market Pulse)\n- 6개 소스를 통합해서 오늘 가장 중요한 시장 이슈 1개 선정\n- 왜 이 이슈가 중요한지, 투자자 관점에서 3-4문장 해설\n- **관심 섹터에 미치는 영향 반드시 언급**\n- 거시경제, 금리, 섹터 동향 등 핵심 컨텍스트 포함\n\n### 3. Editor's Pick TOP 5\n- 6개 소스에서 고르게 믹스\n- **관심 섹터 관련 뉴스 우선 선정**\n- 선정 기준: 섹터 연관성 > 시장 영향력 > 투자 시사점 > 긴급성\n- 각 뉴스마다:\n  - 📈/📰/🌍/📺/💹/🏛️ 소스 아이콘 + 헤드라인\n  - \"왜 주목해야 하는지\" 2문장 코멘트 (한국어)\n  - 언급된 티커가 있으면 표시\n  - 원문 링크 버튼\n\n### 4. 오늘의 체크리스트\n- 주요 기업 실적 발표 일정 (있으면 🔥 강조)\n- 경제지표, 연준 발언 등 이벤트\n- 없으면 생략\n\n## 출력 형식\n\n**반드시 순수 HTML만 출력하세요.**\n- <!DOCTYPE html>로 시작, </html>로 끝\n- 마크다운 코드블럭(```html) 절대 금지\n- 설명이나 사족 금지\n\n## HTML 디자인 가이드\n\n- 반응형: max-width 650px, 중앙 정렬, padding 20px\n- 헤더:\n  - 배경: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)\n  - 제목: \"📊 DailyStockDigest\" (흰색, 굵게, 28px)\n  - 날짜 + 소스별 기사 수 요약\n- **Sector Highlights 섹션:**\n  - 섹터별 카드 형태, 각 섹터 아이콘 표시\n  - 섹터 헤더: 아이콘 + 섹터명 (예: 🤖 AI/반도체)\n  - 영향도 뱃지: 🔴 부정(#fee2e2), 🟡 중립(#fef9c3), 🟢 긍정(#d1fae5)\n  - 뉴스가 있는 섹터만 표시\n- Today's Market Pulse 섹션:\n  - 배경: linear-gradient(135deg, #3b82f622, #1d4ed822)\n  - 좌측 보더: 4px solid #3b82f6\n- TOP 5 카드:\n  - 흰색 배경, box-shadow, border-radius: 16px\n  - 소스별 뱃지: MarketWatch(#dbeafe), WSJ(#fef3c7), Investing(#d1fae5), CNBC(#fee2e2), Yahoo(#e0e7ff), Nasdaq(#fce7f3)\n  - 티커 뱃지: background #f1f5f9, color #475569, border-radius: 4px\n  - 링크 버튼:\n    <a href=\"URL\" style=\"display: inline-block; background-color: #2563eb; color: #ffffff !important; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500;\">원문 보기</a>\n- Quick Scan: 섹터별 구분, 깔끔한 리스트\n- 푸터: 배경 #f8fafc, 면책조항: \"본 뉴스레터는 정보 제공 목적이며, 투자 판단의 책임은 본인에게 있습니다.\"\n- 폰트: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif\n\n## 다크모드 대응 (중요!)\n- 모든 텍스트에 color 명시 (본문: #333333)\n- 카드/섹션 배경: background-color: #ffffff 명시\n- 버튼: background-color + color 둘 다 명시\n- <style> 태그에 다크모드 미디어쿼리:\n  @media (prefers-color-scheme: dark) {\n    body, .card, .section { background-color: #ffffff !important; color: #333333 !important; }\n    a.btn { background-color: #2563eb !important; color: #ffffff !important; }\n  }\n\n한국어로 작성해주세요. 사실만 전달하고, 추측이나 투자 조언은 하지 마세요."
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 8192
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [1150, -25],
+      "id": "claude-editor",
+      "name": "Claude Editor",
+      "credentials": {
+        "anthropicApi": {
+          "id": "REPLACE_WITH_YOUR_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@gmail.com",
+        "subject": "=[DailyStockDigest] {{ $now.format('yyyy-MM-dd') }} 오늘의 시장 브리핑",
+        "emailType": "html",
+        "message": "={{ $json.content[0].text.replace(/```html/gi, '').replace(/```/g, '').trim() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [1400, -25],
+      "id": "send-email",
+      "name": "Send DailyStockDigest",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_WITH_YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@gmail.com",
+        "subject": "=[DailyStockDigest] ⚠️ 크롤링 실패 알림",
+        "message": "=DailyStockDigest 크롤링 중 문제가 발생했습니다.\n\n━━━━━━━━━━━━━━━━━━━━\n📋 상세 정보\n━━━━━━━━━━━━━━━━━━━━\n\n• 발생 시간: {{ $now.format('yyyy-MM-dd HH:mm:ss') }}\n• MarketWatch: {{ $('Combine Data').item.json.marketwatchCount }}개\n• WSJ: {{ $('Combine Data').item.json.wsjCount }}개\n• Investing.com: {{ $('Combine Data').item.json.investingCount }}개\n• CNBC: {{ $('Combine Data').item.json.cnbcCount }}개\n• Yahoo Finance: {{ $('Combine Data').item.json.yahooCount }}개\n• Nasdaq: {{ $('Combine Data').item.json.nasdaqCount }}개\n• 오류: {{ $('Combine Data').item.json.errorMsg || '데이터 없음' }}\n\n━━━━━━━━━━━━━━━━━━━━\n\nn8n 워크플로를 확인해 주세요.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [1150, 225],
+      "id": "error-alert",
+      "name": "Error Alert",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_WITH_YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily 7:40AM": {
+      "main": [
+        [
+          {"node": "RSS MarketWatch", "type": "main", "index": 0},
+          {"node": "RSS WSJ", "type": "main", "index": 0},
+          {"node": "RSS Investing.com", "type": "main", "index": 0},
+          {"node": "RSS CNBC", "type": "main", "index": 0},
+          {"node": "RSS Yahoo Finance", "type": "main", "index": 0},
+          {"node": "RSS Nasdaq", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "RSS MarketWatch": {
+      "main": [[{"node": "Merge All", "type": "main", "index": 0}]]
+    },
+    "RSS WSJ": {
+      "main": [[{"node": "Merge All", "type": "main", "index": 1}]]
+    },
+    "RSS Investing.com": {
+      "main": [[{"node": "Merge All", "type": "main", "index": 2}]]
+    },
+    "RSS CNBC": {
+      "main": [[{"node": "Merge All", "type": "main", "index": 3}]]
+    },
+    "RSS Yahoo Finance": {
+      "main": [[{"node": "Merge All", "type": "main", "index": 4}]]
+    },
+    "RSS Nasdaq": {
+      "main": [[{"node": "Merge All", "type": "main", "index": 5}]]
+    },
+    "Merge All": {
+      "main": [[{"node": "Combine Data", "type": "main", "index": 0}]]
+    },
+    "Combine Data": {
+      "main": [[{"node": "Valid Data?", "type": "main", "index": 0}]]
+    },
+    "Valid Data?": {
+      "main": [
+        [{"node": "Claude Editor", "type": "main", "index": 0}],
+        [{"node": "Error Alert", "type": "main", "index": 0}]
+      ]
+    },
+    "Claude Editor": {
+      "main": [[{"node": "Send DailyStockDigest", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dailystockdigest-v2",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "dailystockdigest",
+  "tags": []
+}

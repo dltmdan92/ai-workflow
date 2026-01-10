@@ -19,21 +19,13 @@
     },
     {
       "parameters": {
-        "url": "https://www.velopers.kr/summary-rss.xml",
-        "options": {
-          "timeout": 30000,
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          }
-        }
+        "url": "https://www.velopers.kr/summary-rss.xml"
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
       "position": [250, -200],
-      "id": "fetch-velopers",
-      "name": "Fetch Velopers"
+      "id": "rss-velopers",
+      "name": "RSS Velopers"
     },
     {
       "parameters": {
@@ -55,49 +47,33 @@
     },
     {
       "parameters": {
-        "url": "https://hnrss.org/frontpage",
-        "options": {
-          "timeout": 30000,
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          }
-        }
+        "url": "https://hnrss.org/frontpage"
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
       "position": [250, 100],
-      "id": "fetch-hn",
-      "name": "Fetch HackerNews"
+      "id": "rss-hn",
+      "name": "RSS HackerNews"
     },
     {
       "parameters": {
-        "url": "https://feeds.feedburner.com/geeknews-feed",
-        "options": {
-          "timeout": 30000,
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          }
-        }
+        "url": "https://feeds.feedburner.com/geeknews-feed"
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
       "position": [250, 250],
-      "id": "fetch-geeknews",
-      "name": "Fetch GeekNews"
+      "id": "rss-geeknews",
+      "name": "RSS GeekNews"
     },
     {
       "parameters": {
-        "jsCode": "const response = $input.first().json;\n\ntry {\n  const xmlText = typeof response === 'string' ? response : (response.data || '');\n  \n  const items = [];\n  const itemRegex = /<item>(.*?)<\\/item>/gs;\n  let match;\n  \n  while ((match = itemRegex.exec(xmlText)) !== null && items.length < 10) {\n    const itemXml = match[1];\n    \n    const getTag = (xml, tag) => {\n      const regex = new RegExp(`<${tag}[^>]*><!\\\\[CDATA\\\\[([\\\\s\\\\S]*?)\\\\]\\\\]><\\/${tag}>|<${tag}[^>]*>([\\\\s\\\\S]*?)<\\/${tag}>`, 'i');\n      const m = xml.match(regex);\n      return m ? (m[1] || m[2] || '').trim() : '';\n    };\n    \n    const title = getTag(itemXml, 'title');\n    const link = getTag(itemXml, 'link');\n    const description = getTag(itemXml, 'description').replace(/<[^>]*>/g, '').slice(0, 200);\n    const author = getTag(itemXml, 'author') || getTag(itemXml, 'dc:creator');\n    const category = getTag(itemXml, 'category');\n    \n    if (title && link) {\n      items.push({\n        title: title,\n        summary: description,\n        company: author || 'Velopers',\n        tags: category ? [category] : [],\n        link: link\n      });\n    }\n  }\n  \n  return [{ json: { source: 'velopers', posts: items, count: items.length, error: false, errorMsg: '' } }];\n} catch (e) {\n  return [{ json: { source: 'velopers', posts: [], count: 0, error: true, errorMsg: e.message } }];\n}"
+        "jsCode": "const items = $input.all();\nconst posts = [];\n\nfor (const item of items.slice(0, 10)) {\n  const data = item.json;\n  posts.push({\n    title: data.title || '',\n    summary: (data.contentSnippet || data.content || '').replace(/<[^>]*>/g, '').slice(0, 200),\n    company: data.creator || 'Velopers',\n    tags: data.categories || [],\n    link: data.link || ''\n  });\n}\n\nreturn [{ json: { source: 'velopers', posts: posts, count: posts.length, error: false, errorMsg: '' } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [500, -200],
-      "id": "parse-velopers",
-      "name": "Parse Velopers"
+      "id": "transform-velopers",
+      "name": "Transform Velopers"
     },
     {
       "parameters": {
@@ -111,23 +87,23 @@
     },
     {
       "parameters": {
-        "jsCode": "const response = $input.first().json;\n\ntry {\n  const xmlText = typeof response === 'string' ? response : (response.data || '');\n  \n  const items = [];\n  const itemRegex = /<item>(.*?)<\\/item>/gs;\n  let match;\n  \n  while ((match = itemRegex.exec(xmlText)) !== null && items.length < 10) {\n    const itemXml = match[1];\n    \n    const getTag = (xml, tag) => {\n      const regex = new RegExp(`<${tag}[^>]*><!\\\\[CDATA\\\\[([\\\\s\\\\S]*?)\\\\]\\\\]><\\/${tag}>|<${tag}[^>]*>([\\\\s\\\\S]*?)<\\/${tag}>`, 'i');\n      const m = xml.match(regex);\n      return m ? (m[1] || m[2] || '').trim() : '';\n    };\n    \n    const title = getTag(itemXml, 'title');\n    const link = getTag(itemXml, 'link');\n    const description = getTag(itemXml, 'description').replace(/<[^>]*>/g, '').slice(0, 200);\n    \n    const pointsMatch = description.match(/Points:\\s*(\\d+)/);\n    const points = pointsMatch ? pointsMatch[1] : '';\n    \n    if (title && link && !title.includes('hiring') && !title.includes('Ask HN:')) {\n      items.push({\n        title: title,\n        summary: points ? `${points} points | ${description.slice(0, 100)}` : description.slice(0, 150),\n        company: 'HackerNews',\n        tags: ['Tech'],\n        link: link\n      });\n    }\n  }\n  \n  return [{ json: { source: 'hackernews', posts: items, count: items.length, error: false, errorMsg: '' } }];\n} catch (e) {\n  return [{ json: { source: 'hackernews', posts: [], count: 0, error: true, errorMsg: e.message } }];\n}"
+        "jsCode": "const items = $input.all();\nconst posts = [];\n\nfor (const item of items.slice(0, 10)) {\n  const data = item.json;\n  const title = data.title || '';\n  \n  // Skip hiring posts and Ask HN\n  if (title.includes('hiring') || title.includes('Ask HN:')) continue;\n  \n  const content = (data.contentSnippet || data.content || '').replace(/<[^>]*>/g, '');\n  const pointsMatch = content.match(/Points:\\s*(\\d+)/);\n  const points = pointsMatch ? pointsMatch[1] : '';\n  \n  posts.push({\n    title: title,\n    summary: points ? `${points} points` : content.slice(0, 150),\n    company: 'HackerNews',\n    tags: ['Tech'],\n    link: data.link || ''\n  });\n}\n\nreturn [{ json: { source: 'hackernews', posts: posts, count: posts.length, error: false, errorMsg: '' } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [500, 100],
-      "id": "parse-hn",
-      "name": "Parse HackerNews"
+      "id": "transform-hn",
+      "name": "Transform HackerNews"
     },
     {
       "parameters": {
-        "jsCode": "const response = $input.first().json;\n\ntry {\n  const xmlText = typeof response === 'string' ? response : (response.data || '');\n  \n  const items = [];\n  // GeekNews uses Atom format with <entry> instead of RSS <item>\n  const entryRegex = /<entry>(.*?)<\\/entry>/gs;\n  let match;\n  \n  while ((match = entryRegex.exec(xmlText)) !== null && items.length < 10) {\n    const entryXml = match[1];\n    \n    // Get title (handles CDATA)\n    const getTag = (xml, tag) => {\n      const regex = new RegExp(`<${tag}[^>]*><!\\\\[CDATA\\\\[([\\\\s\\\\S]*?)\\\\]\\\\]><\\/${tag}>|<${tag}[^>]*>([\\\\s\\\\S]*?)<\\/${tag}>`, 'i');\n      const m = xml.match(regex);\n      return m ? (m[1] || m[2] || '').trim() : '';\n    };\n    \n    // Atom format: <link rel='alternate' type='text/html' href='URL' />\n    const getLinkHref = (xml) => {\n      const linkMatch = xml.match(/<link[^>]*rel=['\"]alternate['\"][^>]*href=['\"]([^'\"]+)['\"][^>]*\\/?>|<link[^>]*href=['\"]([^'\"]+)['\"][^>]*rel=['\"]alternate['\"][^>]*\\/?>/i);\n      return linkMatch ? (linkMatch[1] || linkMatch[2] || '') : '';\n    };\n    \n    const title = getTag(entryXml, 'title');\n    const link = getLinkHref(entryXml);\n    // Atom uses <content> instead of <description>\n    const content = getTag(entryXml, 'content').replace(/<[^>]*>/g, '').slice(0, 200);\n    \n    if (title && link) {\n      items.push({\n        title: title,\n        summary: content,\n        company: 'GeekNews',\n        tags: ['Tech'],\n        link: link\n      });\n    }\n  }\n  \n  return [{ json: { source: 'geeknews', posts: items, count: items.length, error: false, errorMsg: '' } }];\n} catch (e) {\n  return [{ json: { source: 'geeknews', posts: [], count: 0, error: true, errorMsg: e.message } }];\n}"
+        "jsCode": "const items = $input.all();\nconst posts = [];\n\nfor (const item of items.slice(0, 10)) {\n  const data = item.json;\n  posts.push({\n    title: data.title || '',\n    summary: (data.contentSnippet || data.content || '').replace(/<[^>]*>/g, '').slice(0, 200),\n    company: 'GeekNews',\n    tags: ['Tech'],\n    link: data.link || ''\n  });\n}\n\nreturn [{ json: { source: 'geeknews', posts: posts, count: posts.length, error: false, errorMsg: '' } }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [500, 250],
-      "id": "parse-geeknews",
-      "name": "Parse GeekNews"
+      "id": "transform-geeknews",
+      "name": "Transform GeekNews"
     },
     {
       "parameters": {
@@ -264,35 +240,35 @@
     "Daily 6PM": {
       "main": [
         [
-          {"node": "Fetch Velopers", "type": "main", "index": 0},
+          {"node": "RSS Velopers", "type": "main", "index": 0},
           {"node": "Fetch InfoQ", "type": "main", "index": 0},
-          {"node": "Fetch HackerNews", "type": "main", "index": 0},
-          {"node": "Fetch GeekNews", "type": "main", "index": 0}
+          {"node": "RSS HackerNews", "type": "main", "index": 0},
+          {"node": "RSS GeekNews", "type": "main", "index": 0}
         ]
       ]
     },
-    "Fetch Velopers": {
-      "main": [[{"node": "Parse Velopers", "type": "main", "index": 0}]]
+    "RSS Velopers": {
+      "main": [[{"node": "Transform Velopers", "type": "main", "index": 0}]]
     },
     "Fetch InfoQ": {
       "main": [[{"node": "Parse InfoQ", "type": "main", "index": 0}]]
     },
-    "Fetch HackerNews": {
-      "main": [[{"node": "Parse HackerNews", "type": "main", "index": 0}]]
+    "RSS HackerNews": {
+      "main": [[{"node": "Transform HackerNews", "type": "main", "index": 0}]]
     },
-    "Fetch GeekNews": {
-      "main": [[{"node": "Parse GeekNews", "type": "main", "index": 0}]]
+    "RSS GeekNews": {
+      "main": [[{"node": "Transform GeekNews", "type": "main", "index": 0}]]
     },
-    "Parse Velopers": {
+    "Transform Velopers": {
       "main": [[{"node": "Merge All", "type": "main", "index": 0}]]
     },
     "Parse InfoQ": {
       "main": [[{"node": "Merge All", "type": "main", "index": 1}]]
     },
-    "Parse HackerNews": {
+    "Transform HackerNews": {
       "main": [[{"node": "Merge All", "type": "main", "index": 2}]]
     },
-    "Parse GeekNews": {
+    "Transform GeekNews": {
       "main": [[{"node": "Merge All", "type": "main", "index": 3}]]
     },
     "Merge All": {
@@ -313,10 +289,9 @@
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1",
-    "availableInMCP": false
+    "executionOrder": "v1"
   },
-  "versionId": "umostechdaily-v1",
+  "versionId": "umostechdaily-v2",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "678a5238a5a4464785d96479a712150186b8f51ccea1dd4d41a5d6dcc1a13935"

@@ -1,0 +1,326 @@
+{
+  "name": "UmosTechDaily - Daily Tech Curator",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 18
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [0, 0],
+      "id": "schedule-trigger",
+      "name": "Daily 6PM"
+    },
+    {
+      "parameters": {
+        "url": "https://www.velopers.kr/summary-rss.xml",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [250, -200],
+      "id": "fetch-velopers",
+      "name": "Fetch Velopers"
+    },
+    {
+      "parameters": {
+        "url": "https://feed.infoq.com/",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [250, -50],
+      "id": "fetch-infoq",
+      "name": "Fetch InfoQ"
+    },
+    {
+      "parameters": {
+        "url": "https://hnrss.org/frontpage",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [250, 100],
+      "id": "fetch-hn",
+      "name": "Fetch HackerNews"
+    },
+    {
+      "parameters": {
+        "url": "https://feeds.feedburner.com/geeknews-feed",
+        "options": {
+          "timeout": 30000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [250, 250],
+      "id": "fetch-geeknews",
+      "name": "Fetch GeekNews"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\ntry {\n  const xmlText = typeof response === 'string' ? response : (response.data || '');\n  \n  const items = [];\n  const itemRegex = /<item>(.*?)<\\/item>/gs;\n  let match;\n  \n  while ((match = itemRegex.exec(xmlText)) !== null && items.length < 10) {\n    const itemXml = match[1];\n    \n    const getTag = (xml, tag) => {\n      const regex = new RegExp(`<${tag}[^>]*><!\\\\[CDATA\\\\[([\\\\s\\\\S]*?)\\\\]\\\\]><\\/${tag}>|<${tag}[^>]*>([\\\\s\\\\S]*?)<\\/${tag}>`, 'i');\n      const m = xml.match(regex);\n      return m ? (m[1] || m[2] || '').trim() : '';\n    };\n    \n    const title = getTag(itemXml, 'title');\n    const link = getTag(itemXml, 'link');\n    const description = getTag(itemXml, 'description').replace(/<[^>]*>/g, '').slice(0, 200);\n    const author = getTag(itemXml, 'author') || getTag(itemXml, 'dc:creator');\n    const category = getTag(itemXml, 'category');\n    \n    if (title && link) {\n      items.push({\n        title: title,\n        summary: description,\n        company: author || 'Velopers',\n        tags: category ? [category] : [],\n        link: link\n      });\n    }\n  }\n  \n  return [{ json: { source: 'velopers', posts: items, count: items.length, error: false, errorMsg: '' } }];\n} catch (e) {\n  return [{ json: { source: 'velopers', posts: [], count: 0, error: true, errorMsg: e.message } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, -200],
+      "id": "parse-velopers",
+      "name": "Parse Velopers"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\ntry {\n  const xmlText = typeof response === 'string' ? response : (response.data || '');\n  \n  const items = [];\n  const itemRegex = /<item>(.*?)<\\/item>/gs;\n  let match;\n  \n  while ((match = itemRegex.exec(xmlText)) !== null && items.length < 10) {\n    const itemXml = match[1];\n    \n    const getTag = (xml, tag) => {\n      const regex = new RegExp(`<${tag}[^>]*><!\\\\[CDATA\\\\[([\\\\s\\\\S]*?)\\\\]\\\\]><\\/${tag}>|<${tag}[^>]*>([\\\\s\\\\S]*?)<\\/${tag}>`, 'i');\n      const m = xml.match(regex);\n      return m ? (m[1] || m[2] || '').trim() : '';\n    };\n    \n    const title = getTag(itemXml, 'title');\n    const link = getTag(itemXml, 'link');\n    const description = getTag(itemXml, 'description').replace(/<[^>]*>/g, '').slice(0, 200);\n    const category = getTag(itemXml, 'category');\n    \n    if (title && link) {\n      items.push({\n        title: title,\n        summary: description,\n        company: 'InfoQ',\n        tags: category ? [category] : [],\n        link: link\n      });\n    }\n  }\n  \n  return [{ json: { source: 'infoq', posts: items, count: items.length, error: false, errorMsg: '' } }];\n} catch (e) {\n  return [{ json: { source: 'infoq', posts: [], count: 0, error: true, errorMsg: e.message } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, -50],
+      "id": "parse-infoq",
+      "name": "Parse InfoQ"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\ntry {\n  const xmlText = typeof response === 'string' ? response : (response.data || '');\n  \n  const items = [];\n  const itemRegex = /<item>(.*?)<\\/item>/gs;\n  let match;\n  \n  while ((match = itemRegex.exec(xmlText)) !== null && items.length < 10) {\n    const itemXml = match[1];\n    \n    const getTag = (xml, tag) => {\n      const regex = new RegExp(`<${tag}[^>]*><!\\\\[CDATA\\\\[([\\\\s\\\\S]*?)\\\\]\\\\]><\\/${tag}>|<${tag}[^>]*>([\\\\s\\\\S]*?)<\\/${tag}>`, 'i');\n      const m = xml.match(regex);\n      return m ? (m[1] || m[2] || '').trim() : '';\n    };\n    \n    const title = getTag(itemXml, 'title');\n    const link = getTag(itemXml, 'link');\n    const description = getTag(itemXml, 'description').replace(/<[^>]*>/g, '').slice(0, 200);\n    \n    const pointsMatch = description.match(/Points:\\s*(\\d+)/);\n    const points = pointsMatch ? pointsMatch[1] : '';\n    \n    if (title && link && !title.includes('hiring') && !title.includes('Ask HN:')) {\n      items.push({\n        title: title,\n        summary: points ? `${points} points | ${description.slice(0, 100)}` : description.slice(0, 150),\n        company: 'HackerNews',\n        tags: ['Tech'],\n        link: link\n      });\n    }\n  }\n  \n  return [{ json: { source: 'hackernews', posts: items, count: items.length, error: false, errorMsg: '' } }];\n} catch (e) {\n  return [{ json: { source: 'hackernews', posts: [], count: 0, error: true, errorMsg: e.message } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 100],
+      "id": "parse-hn",
+      "name": "Parse HackerNews"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\ntry {\n  const xmlText = typeof response === 'string' ? response : (response.data || '');\n  \n  const items = [];\n  // GeekNews uses Atom format with <entry> instead of RSS <item>\n  const entryRegex = /<entry>(.*?)<\\/entry>/gs;\n  let match;\n  \n  while ((match = entryRegex.exec(xmlText)) !== null && items.length < 10) {\n    const entryXml = match[1];\n    \n    // Get title (handles CDATA)\n    const getTag = (xml, tag) => {\n      const regex = new RegExp(`<${tag}[^>]*><!\\\\[CDATA\\\\[([\\\\s\\\\S]*?)\\\\]\\\\]><\\/${tag}>|<${tag}[^>]*>([\\\\s\\\\S]*?)<\\/${tag}>`, 'i');\n      const m = xml.match(regex);\n      return m ? (m[1] || m[2] || '').trim() : '';\n    };\n    \n    // Atom format: <link rel='alternate' type='text/html' href='URL' />\n    const getLinkHref = (xml) => {\n      const linkMatch = xml.match(/<link[^>]*rel=['\"]alternate['\"][^>]*href=['\"]([^'\"]+)['\"][^>]*\\/?>|<link[^>]*href=['\"]([^'\"]+)['\"][^>]*rel=['\"]alternate['\"][^>]*\\/?>/i);\n      return linkMatch ? (linkMatch[1] || linkMatch[2] || '') : '';\n    };\n    \n    const title = getTag(entryXml, 'title');\n    const link = getLinkHref(entryXml);\n    // Atom uses <content> instead of <description>\n    const content = getTag(entryXml, 'content').replace(/<[^>]*>/g, '').slice(0, 200);\n    \n    if (title && link) {\n      items.push({\n        title: title,\n        summary: content,\n        company: 'GeekNews',\n        tags: ['Tech'],\n        link: link\n      });\n    }\n  }\n  \n  return [{ json: { source: 'geeknews', posts: items, count: items.length, error: false, errorMsg: '' } }];\n} catch (e) {\n  return [{ json: { source: 'geeknews', posts: [], count: 0, error: true, errorMsg: e.message } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 250],
+      "id": "parse-geeknews",
+      "name": "Parse GeekNews"
+    },
+    {
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 4
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [750, 25],
+      "id": "merge-all",
+      "name": "Merge All"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nlet velopers = { posts: [], count: 0, error: false, errorMsg: '' };\nlet infoq = { posts: [], count: 0, error: false, errorMsg: '' };\nlet hackernews = { posts: [], count: 0, error: false, errorMsg: '' };\nlet geeknews = { posts: [], count: 0, error: false, errorMsg: '' };\n\nfor (const item of items) {\n  if (item.json.source === 'velopers') {\n    velopers = item.json;\n  } else if (item.json.source === 'infoq') {\n    infoq = item.json;\n  } else if (item.json.source === 'hackernews') {\n    hackernews = item.json;\n  } else if (item.json.source === 'geeknews') {\n    geeknews = item.json;\n  }\n}\n\nconst hasError = velopers.error && infoq.error && hackernews.error && geeknews.error;\nconst totalCount = velopers.count + infoq.count + hackernews.count + geeknews.count;\nconst errorMsg = [velopers.errorMsg, infoq.errorMsg, hackernews.errorMsg, geeknews.errorMsg].filter(Boolean).join('; ');\n\nreturn [{\n  json: {\n    velopers: JSON.stringify(velopers.posts, null, 2),\n    velopersCount: velopers.count,\n    infoq: JSON.stringify(infoq.posts, null, 2),\n    infoqCount: infoq.count,\n    hackernews: JSON.stringify(hackernews.posts, null, 2),\n    hackernewsCount: hackernews.count,\n    geeknews: JSON.stringify(geeknews.posts, null, 2),\n    geeknewsCount: geeknews.count,\n    totalCount: totalCount,\n    error: hasError,\n    errorMsg: errorMsg\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [950, 25],
+      "id": "combine-data",
+      "name": "Combine Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-error",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "condition-count",
+              "leftValue": "={{ $json.totalCount }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1150, 25],
+      "id": "check-valid",
+      "name": "Valid Data?"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-opus-4-20250514",
+          "mode": "list",
+          "cachedResultName": "claude-opus-4-20250514"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=당신은 umos one (42dot 자회사) 개발팀을 위한 기술 뉴스 큐레이터 \"UmosTechDaily\"의 에디터입니다.\n모빌리티/소프트웨어 개발자들이 출퇴근길에 가볍게, 하지만 깊이 있게 읽을 수 있는 Daily Tech Briefing을 만들어주세요.\n\n## 오늘의 소스\n\n### 🇰🇷 국내 기술 블로그 (Velopers) - {{ $json.velopersCount }}개\n{{ $json.velopers }}\n\n### 🌍 글로벌 기술 뉴스 (InfoQ) - {{ $json.infoqCount }}개\n{{ $json.infoq }}\n\n### 🔥 Hacker News 인기글 - {{ $json.hackernewsCount }}개\n{{ $json.hackernews }}\n\n### 💎 GeekNews 큐레이션 - {{ $json.geeknewsCount }}개\n{{ $json.geeknews }}\n\n## 작업 지시\n\n### 1. Today's Pulse (오늘의 핵심)\n- 4개 소스를 통합해서 오늘의 핵심 트렌드 1개 선정\n- 왜 이 트렌드가 중요한지, 특히 모빌리티/자율주행/소프트웨어 관점에서 3-4문장 해설\n\n### 2. Editor's Pick TOP 5\n- 4개 소스에서 고르게 믹스 (국내 1-2개, 글로벌 3-4개)\n- 선정 기준: 희소성, 기술적 깊이, 실무 적용 가능성\n- 각 글마다:\n  - 🇰🇷 / 🌍 / 🔥 / 💎 소스 표시 + 제목\n  - \"왜 읽어야 하는지\" 2문장 코멘트\n  - 원문 링크 버튼\n\n### 3. Quick Scan\n- **🇰🇷 국내 블로그**: 나머지 글 (회사명 + 제목 + 링크)\n- **🌍 InfoQ**: 나머지 글 (제목 + 링크)\n- **🔥 HackerNews**: 나머지 글 (제목 + 링크)\n- **💎 GeekNews**: 나머지 글 (제목 + 링크)\n\n## 출력 형식\n\n**반드시 순수 HTML만 출력하세요.**\n- <!DOCTYPE html>로 시작, </html>로 끝\n- 마크다운 코드블럭(```html) 절대 금지\n- 설명이나 사족 금지\n\n## HTML 디자인 가이드\n\n- 반응형: max-width 650px, 중앙 정렬, padding 20px\n- 헤더:\n  - 배경: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)\n  - 제목: \"⚡ UmosTechDaily\" (흰색, 굵게, 28px)\n  - 부제: \"by umos one\" (연한 회색, 작게)\n  - 날짜 + \"국내 {{ $json.velopersCount }}개 + InfoQ {{ $json.infoqCount }}개 + HN {{ $json.hackernewsCount }}개 + GeekNews {{ $json.geeknewsCount }}개\"\n- Today's Pulse 섹션:\n  - 배경: linear-gradient(135deg, #667eea22, #764ba222)\n  - 좌측 보더: 4px solid #667eea\n- TOP 5 카드:\n  - 흰색 배경, box-shadow, border-radius: 16px\n  - 소스별 뱃지: 국내(#e0e7ff), InfoQ(#d1fae5), HN(#fee2e2), GeekNews(#fef3c7)\n  - 링크 버튼 (중요! 반드시 인라인 스타일로):\n    <a href=\"URL\" style=\"display: inline-block; background-color: #4f46e5; color: #ffffff !important; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500;\">원문 보기</a>\n- Quick Scan: 소스별 구분, 깔끔한 리스트\n- 푸터: 배경 #f8fafc, \"Powered by n8n + Claude AI\"\n- 폰트: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif\n\n## 다크모드 대응 (중요!)\n- 모든 텍스트에 color 명시 (본문: #333333)\n- 카드/섹션 배경: background-color: #ffffff 명시\n- 버튼: background-color + color 둘 다 명시\n- <style> 태그에 다크모드 미디어쿼리:\n  @media (prefers-color-scheme: dark) {\n    body, .card, .section { background-color: #ffffff !important; color: #333333 !important; }\n    a.btn { background-color: #4f46e5 !important; color: #ffffff !important; }\n  }\n\n한국어로 작성해주세요."
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 16384
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [1400, -75],
+      "id": "claude-editor",
+      "name": "Claude Editor",
+      "credentials": {
+        "anthropicApi": {
+          "id": "oFOfovPHfH6TjlTI",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "dltmdan92@gmail.com",
+        "subject": "=[UmosTechDaily] {{ $now.format('yyyy-MM-dd') }} Daily Tech Briefing",
+        "emailType": "html",
+        "message": "={{ $json.content[0].text.replace(/```html/gi, '').replace(/```/g, '').trim() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [1650, -75],
+      "id": "send-email",
+      "name": "Send UmosTechDaily",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6emKzENJy4k0xAHd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "dltmdan92@gmail.com",
+        "subject": "=[UmosTechDaily] ⚠️ 크롤링 실패 알림",
+        "message": "=UmosTechDaily 크롤링 중 문제가 발생했습니다.\n\n━━━━━━━━━━━━━━━━━━━━\n📋 상세 정보\n━━━━━━━━━━━━━━━━━━━━\n\n• 발생 시간: {{ $now.format('yyyy-MM-dd HH:mm:ss') }}\n• Velopers: {{ $('Combine Data').item.json.velopersCount }}개\n• InfoQ: {{ $('Combine Data').item.json.infoqCount }}개\n• HackerNews: {{ $('Combine Data').item.json.hackernewsCount }}개\n• GeekNews: {{ $('Combine Data').item.json.geeknewsCount }}개\n• 오류: {{ $('Combine Data').item.json.errorMsg || '데이터 없음' }}\n\n━━━━━━━━━━━━━━━━━━━━\n\nn8n 워크플로를 확인해 주세요.\n\n- umos one DevOps",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [1400, 150],
+      "id": "error-alert",
+      "name": "Error Alert",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6emKzENJy4k0xAHd",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily 6PM": {
+      "main": [
+        [
+          {"node": "Fetch Velopers", "type": "main", "index": 0},
+          {"node": "Fetch InfoQ", "type": "main", "index": 0},
+          {"node": "Fetch HackerNews", "type": "main", "index": 0},
+          {"node": "Fetch GeekNews", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "Fetch Velopers": {
+      "main": [[{"node": "Parse Velopers", "type": "main", "index": 0}]]
+    },
+    "Fetch InfoQ": {
+      "main": [[{"node": "Parse InfoQ", "type": "main", "index": 0}]]
+    },
+    "Fetch HackerNews": {
+      "main": [[{"node": "Parse HackerNews", "type": "main", "index": 0}]]
+    },
+    "Fetch GeekNews": {
+      "main": [[{"node": "Parse GeekNews", "type": "main", "index": 0}]]
+    },
+    "Parse Velopers": {
+      "main": [[{"node": "Merge All", "type": "main", "index": 0}]]
+    },
+    "Parse InfoQ": {
+      "main": [[{"node": "Merge All", "type": "main", "index": 1}]]
+    },
+    "Parse HackerNews": {
+      "main": [[{"node": "Merge All", "type": "main", "index": 2}]]
+    },
+    "Parse GeekNews": {
+      "main": [[{"node": "Merge All", "type": "main", "index": 3}]]
+    },
+    "Merge All": {
+      "main": [[{"node": "Combine Data", "type": "main", "index": 0}]]
+    },
+    "Combine Data": {
+      "main": [[{"node": "Valid Data?", "type": "main", "index": 0}]]
+    },
+    "Valid Data?": {
+      "main": [
+        [{"node": "Claude Editor", "type": "main", "index": 0}],
+        [{"node": "Error Alert", "type": "main", "index": 0}]
+      ]
+    },
+    "Claude Editor": {
+      "main": [[{"node": "Send UmosTechDaily", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "umostechdaily-v1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "678a5238a5a4464785d96479a712150186b8f51ccea1dd4d41a5d6dcc1a13935"
+  },
+  "id": "umostechdaily",
+  "tags": []
+}

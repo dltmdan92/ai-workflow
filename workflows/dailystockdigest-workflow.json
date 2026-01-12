@@ -14,79 +14,108 @@
       },
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.3,
-      "position": [0, 0],
-      "id": "schedule-trigger",
+      "position": [
+        3856,
+        368
+      ],
+      "id": "ed6d1238-3ae3-4b5a-b07c-fbdaf5d137dc",
       "name": "Daily 7:40AM"
     },
     {
       "parameters": {
-        "url": "https://www.marketwatch.com/rss/topstories"
+        "url": "https://www.marketwatch.com/rss/topstories",
+        "options": {}
       },
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.1,
-      "position": [250, -300],
-      "id": "rss-marketwatch",
+      "position": [
+        4096,
+        64
+      ],
+      "id": "77ecda6c-1c47-48b7-9087-8d64c8e61e7c",
       "name": "RSS MarketWatch"
     },
     {
       "parameters": {
-        "url": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
+        "url": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml",
+        "options": {}
       },
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.1,
-      "position": [250, -150],
-      "id": "rss-wsj",
+      "position": [
+        4096,
+        224
+      ],
+      "id": "7de1267e-91d5-4436-acbc-868eb63cff3e",
       "name": "RSS WSJ"
     },
     {
       "parameters": {
-        "url": "https://www.investing.com/rss/news.rss"
+        "url": "https://www.investing.com/rss/news.rss",
+        "options": {}
       },
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.1,
-      "position": [250, 0],
-      "id": "rss-investing",
+      "position": [
+        4096,
+        368
+      ],
+      "id": "96e8a9cf-fabe-4fd9-933c-9f3a4a6b39c7",
       "name": "RSS Investing.com"
     },
     {
       "parameters": {
-        "url": "https://www.cnbc.com/id/20910258/device/rss/rss.html"
+        "url": "https://www.cnbc.com/id/20910258/device/rss/rss.html",
+        "options": {}
       },
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.1,
-      "position": [250, 150],
-      "id": "rss-cnbc",
+      "position": [
+        4096,
+        528
+      ],
+      "id": "d1d96466-d857-4241-b66c-c574f9bb809b",
       "name": "RSS CNBC"
     },
     {
       "parameters": {
-        "url": "https://finance.yahoo.com/news/rssindex"
+        "url": "https://finance.yahoo.com/news/rssindex",
+        "options": {}
       },
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.1,
-      "position": [250, 300],
-      "id": "rss-yahoo",
+      "position": [
+        4096,
+        672
+      ],
+      "id": "a25fab3a-2631-4edd-a4b6-6dc2d6027742",
       "name": "RSS Yahoo Finance"
     },
     {
       "parameters": {
-        "url": "https://www.nasdaq.com/feed/rssoutbound"
+        "url": "https://www.nasdaq.com/feed/rssoutbound",
+        "options": {}
       },
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.1,
-      "position": [250, 450],
-      "id": "rss-nasdaq",
+      "position": [
+        4096,
+        816
+      ],
+      "id": "891d5253-5d13-4635-bd24-71fcf32ea2d2",
       "name": "RSS Nasdaq"
     },
     {
       "parameters": {
-        "mode": "append",
         "numberInputs": 6
       },
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
-      "position": [500, 75],
-      "id": "merge-all",
+      "position": [
+        4352,
+        448
+      ],
+      "id": "579acd11-09c6-4d1e-a24d-78638bc61b41",
       "name": "Merge All"
     },
     {
@@ -95,8 +124,11 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [700, 75],
-      "id": "combine-data",
+      "position": [
+        4560,
+        448
+      ],
+      "id": "0cf0d78d-099b-452a-8c89-a1f8d3aa7362",
       "name": "Combine Data"
     },
     {
@@ -105,7 +137,8 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict"
+            "typeValidation": "strict",
+            "version": 2
           },
           "conditions": [
             {
@@ -124,8 +157,11 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [900, 75],
-      "id": "check-valid",
+      "position": [
+        4752,
+        448
+      ],
+      "id": "5a4b2bdf-081f-49c8-a033-c4fe41b02013",
       "name": "Valid Data?"
     },
     {
@@ -139,7 +175,7 @@
         "messages": {
           "values": [
             {
-              "content": "=당신은 개인 투자자를 위한 글로벌 시장 뉴스 큐레이터 \"DailyStockDigest\"의 에디터입니다.\n바쁜 직장인 투자자들이 출근 전 가볍게, 하지만 핵심을 놓치지 않도록 읽을 수 있는 Daily Market Briefing을 만들어주세요.\n\n## 오늘의 소스 (6개 채널)\n\n### 📈 MarketWatch - {{ $json.marketwatchCount }}개\n{{ $json.marketwatch }}\n\n### 📰 WSJ Markets - {{ $json.wsjCount }}개\n{{ $json.wsj }}\n\n### 🌍 Investing.com - {{ $json.investingCount }}개\n{{ $json.investing }}\n\n### 📺 CNBC - {{ $json.cnbcCount }}개\n{{ $json.cnbc }}\n\n### 💹 Yahoo Finance - {{ $json.yahooCount }}개\n{{ $json.yahoo }}\n\n### 🏛️ Nasdaq - {{ $json.nasdaqCount }}개\n{{ $json.nasdaq }}\n\n## ⭐ 관심 섹터/테마 (My Focus Areas) - 매우 중요!\n\n### 🤖 AI/반도체\n- AI 칩, GPU, 데이터센터, AI 인프라, 커스텀 실리콘\n- 파운드리, 메모리, 반도체 장비\n\n### 💻 빅테크/클라우드\n- 클라우드 컴퓨팅, SaaS, 빅테크 실적\n- 디지털 광고, 이커머스, 스트리밍\n\n### 🔐 사이버보안/엔터프라이즈\n- 보안 소프트웨어, 제로트러스트, 클라우드 보안\n- 엔터프라이즈 소프트웨어, 데이터 플랫폼\n\n### ⚡ 전기차/에너지\n- EV, 배터리, 자율주행, 충전 인프라\n- 신재생에너지, 원자력, 에너지 저장\n\n### 💊 헬스케어/바이오\n- 신약 개발, FDA 승인, 바이오텍\n- 의료기기, 디지털 헬스케어, GLP-1\n\n### 🏦 거시경제/금융\n- 금리, 인플레이션, 연준 정책\n- 은행, 핀테크, 결제\n\n## 작업 지시\n\n### 1. 📢 섹터별 핵심 뉴스 (Sector Highlights) - 최우선!\n**이 섹션이 가장 중요합니다!**\n- 위 관심 섹터/테마와 관련된 주요 뉴스를 모두 찾아내세요\n- 섹터별로 그룹핑하여 정리\n- 각 뉴스마다:\n  - 🔴/🟡/🟢 시장 영향도 표시 (부정적/중립/긍정적)\n  - 관련 섹터 태그\n  - 뉴스 요약 1줄 + 투자자 관점 코멘트 1줄\n  - 언급된 기업/티커가 있으면 표시\n  - 원문 링크\n- 해당 섹터 뉴스가 없으면 생략\n\n### 2. 오늘의 시장 펄스 (Today's Market Pulse)\n- 6개 소스를 통합해서 오늘 가장 중요한 시장 이슈 1개 선정\n- 왜 이 이슈가 중요한지, 투자자 관점에서 3-4문장 해설\n- **관심 섹터에 미치는 영향 반드시 언급**\n- 거시경제, 금리, 섹터 동향 등 핵심 컨텍스트 포함\n\n### 3. Editor's Pick TOP 5\n- 6개 소스에서 고르게 믹스\n- **관심 섹터 관련 뉴스 우선 선정**\n- 선정 기준: 섹터 연관성 > 시장 영향력 > 투자 시사점 > 긴급성\n- 각 뉴스마다:\n  - 📈/📰/🌍/📺/💹/🏛️ 소스 아이콘 + 헤드라인\n  - \"왜 주목해야 하는지\" 2문장 코멘트 (한국어)\n  - 언급된 티커가 있으면 표시\n  - 원문 링크 버튼\n\n### 4. 오늘의 체크리스트\n- 주요 기업 실적 발표 일정 (있으면 🔥 강조)\n- 경제지표, 연준 발언 등 이벤트\n- 없으면 생략\n\n## 출력 형식\n\n**반드시 순수 HTML만 출력하세요.**\n- <!DOCTYPE html>로 시작, </html>로 끝\n- 마크다운 코드블럭(```html) 절대 금지\n- 설명이나 사족 금지\n\n## HTML 디자인 가이드\n\n- 반응형: max-width 650px, 중앙 정렬, padding 20px\n- 헤더:\n  - 배경: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)\n  - 제목: \"📊 DailyStockDigest\" (흰색, 굵게, 28px)\n  - 날짜 + 소스별 기사 수 요약\n- **Sector Highlights 섹션:**\n  - 섹터별 카드 형태, 각 섹터 아이콘 표시\n  - 섹터 헤더: 아이콘 + 섹터명 (예: 🤖 AI/반도체)\n  - 영향도 뱃지: 🔴 부정(#fee2e2), 🟡 중립(#fef9c3), 🟢 긍정(#d1fae5)\n  - 뉴스가 있는 섹터만 표시\n- Today's Market Pulse 섹션:\n  - 배경: linear-gradient(135deg, #3b82f622, #1d4ed822)\n  - 좌측 보더: 4px solid #3b82f6\n- TOP 5 카드:\n  - 흰색 배경, box-shadow, border-radius: 16px\n  - 소스별 뱃지: MarketWatch(#dbeafe), WSJ(#fef3c7), Investing(#d1fae5), CNBC(#fee2e2), Yahoo(#e0e7ff), Nasdaq(#fce7f3)\n  - 티커 뱃지: background #f1f5f9, color #475569, border-radius: 4px\n  - 링크 버튼:\n    <a href=\"URL\" style=\"display: inline-block; background-color: #2563eb; color: #ffffff !important; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500;\">원문 보기</a>\n- Quick Scan: 섹터별 구분, 깔끔한 리스트\n- 푸터: 배경 #f8fafc, 면책조항: \"본 뉴스레터는 정보 제공 목적이며, 투자 판단의 책임은 본인에게 있습니다.\"\n- 폰트: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif\n\n## 다크모드 대응 (중요!)\n- 모든 텍스트에 color 명시 (본문: #333333)\n- 카드/섹션 배경: background-color: #ffffff 명시\n- 버튼: background-color + color 둘 다 명시\n- <style> 태그에 다크모드 미디어쿼리:\n  @media (prefers-color-scheme: dark) {\n    body, .card, .section { background-color: #ffffff !important; color: #333333 !important; }\n    a.btn { background-color: #2563eb !important; color: #ffffff !important; }\n  }\n\n한국어로 작성해주세요. 사실만 전달하고, 추측이나 투자 조언은 하지 마세요."
+              "content": "=당신은 개인 투자자를 위한 글로벌 시장 뉴스 큐레이터 \"DailyStockDigest\"의 수석 에디터입니다.\n\n바쁜 직장인 투자자들이 출근 전 읽을 수 있는 **풍성하고 실전적인** Daily Market Briefing을 만들어주세요.\n\n## 📊 브리핑 구성 (필수 섹션)\n\n### 1️⃣ 오늘의 시장 한눈에 보기\n- 미국 3대 지수 (다우/S&P500/나스닥) 동향 및 변동률\n- 아시아/유럽 주요 지수 요약\n- 원/달러 환율 및 국제유가 동향\n- 비트코인/이더리움 가격 동향\n\n### 2️⃣ TOP 뉴스 심층 분석 (5-7개)\n선정 기준: 시장 영향력 > 투자 시사점 > 섹터 연관성 > 긴급성\n\n각 뉴스별 포맷:\n- 📰/💹/📉/🏛️/🌍 [소스] 헤드라인\n- **핵심 요약**: 3-4문장으로 뉴스의 본질 설명\n- **시장 영향**: 이 뉴스가 시장에 미칠 영향 분석\n- **투자 시사점**: 개인 투자자가 어떻게 대응해야 하는지\n- **관련 티커**: $AAPL, $TSLA 형태로 표시\n\n### 3️⃣ 🔥 공격적 종목 추천 (3-5개)\n**투자 성향: 고위험 고수익 추구**\n\n각 종목별:\n- **티커 & 종목명**: $XXX (회사명)\n- **현재가 & 목표가**: 구체적 수치 제시 (상승여력 %)\n- **추천 근거**: 왜 지금 이 종목인지 3가지 이유\n- **리스크 요인**: 주의해야 할 점 1-2가지\n- **매수 전략**: 분할매수 구간 또는 진입 타이밍 제안\n\n⚠️ 추천 기준:\n- 단기 급등 가능성이 있는 모멘텀 종목 우선\n- 실적 서프라이즈, M&A, 신사업 진출 등 촉매가 있는 종목\n- 52주 신고가 돌파 또는 돌파 임박 종목\n- 기관/외국인 순매수 급증 종목\n\n### 4️⃣ 섹터별 동향 & 테마주\n- 오늘 주목할 섹터 3개와 대표 종목\n- 상승/하락 테마 분석\n- 각 섹터별 투자 매력도 (⭐ 1-5개)\n\n### 5️⃣ 오늘의 일정 & 이벤트\n- 주요 경제지표 발표 일정\n- 실적 발표 예정 기업\n- 연준/중앙은행 일정\n- IPO/공모주 청약 일정\n\n### 6️⃣ 에디터 코멘트\n- 오늘 시장의 핵심 키워드 3개\n- 단기 시장 전망 (불리시/베어리시/중립)\n- \"오늘 가장 주목할 것\" 한 줄 요약\n\n---\n**형식 지침**:\n- 전체 분량: 이메일로 읽기 좋은 2500-3500자\n- 언어: 한국어 (티커/고유명사는 영문)\n- 톤: 전문적이지만 읽기 쉽게, 실전 투자에 도움되도록\n- 이모지 적극 활용하여 가독성 향상\n- HTML 형식으로 출력 (이메일 호환)"
             }
           ]
         },
@@ -149,32 +185,38 @@
       },
       "type": "@n8n/n8n-nodes-langchain.anthropic",
       "typeVersion": 1,
-      "position": [1150, -25],
-      "id": "claude-editor",
+      "position": [
+        5008,
+        352
+      ],
+      "id": "62e88a6d-8807-4ba9-b4d3-7568c3660f5b",
       "name": "Claude Editor",
       "credentials": {
         "anthropicApi": {
-          "id": "REPLACE_WITH_YOUR_ANTHROPIC_CREDENTIAL_ID",
+          "id": "schYLHRdB3NlKTjS",
           "name": "Anthropic account"
         }
       }
     },
     {
       "parameters": {
-        "sendTo": "YOUR_EMAIL@gmail.com",
+        "sendTo": "dltmdan92@gmail.com, Shinjh714@naver.com, mezizon92@naver.com, patriot4397@gmail.com",
         "subject": "=[DailyStockDigest] {{ $now.format('yyyy-MM-dd') }} 오늘의 시장 브리핑",
-        "emailType": "html",
         "message": "={{ $json.content[0].text.replace(/```html/gi, '').replace(/```/g, '').trim() }}",
         "options": {}
       },
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
-      "position": [1400, -25],
-      "id": "send-email",
+      "position": [
+        5312,
+        352
+      ],
+      "id": "374ef854-4f93-4e63-b5f1-5bca50c8af6c",
       "name": "Send DailyStockDigest",
+      "webhookId": "4a667a16-5abd-44c0-a6a3-adc1ec79df7e",
       "credentials": {
         "gmailOAuth2": {
-          "id": "REPLACE_WITH_YOUR_GMAIL_CREDENTIAL_ID",
+          "id": "efOQQ63RauLKsVjO",
           "name": "Gmail account"
         }
       }
@@ -188,12 +230,16 @@
       },
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
-      "position": [1150, 225],
-      "id": "error-alert",
+      "position": [
+        5008,
+        592
+      ],
+      "id": "979167c2-0fd4-4095-9292-82871a6ac14b",
       "name": "Error Alert",
+      "webhookId": "8a24f48f-1f1d-43d2-b906-8fe5a4d4adfb",
       "credentials": {
         "gmailOAuth2": {
-          "id": "REPLACE_WITH_YOUR_GMAIL_CREDENTIAL_ID",
+          "id": "efOQQ63RauLKsVjO",
           "name": "Gmail account"
         }
       }
@@ -204,57 +250,167 @@
     "Daily 7:40AM": {
       "main": [
         [
-          {"node": "RSS MarketWatch", "type": "main", "index": 0},
-          {"node": "RSS WSJ", "type": "main", "index": 0},
-          {"node": "RSS Investing.com", "type": "main", "index": 0},
-          {"node": "RSS CNBC", "type": "main", "index": 0},
-          {"node": "RSS Yahoo Finance", "type": "main", "index": 0},
-          {"node": "RSS Nasdaq", "type": "main", "index": 0}
+          {
+            "node": "RSS MarketWatch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS WSJ",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Investing.com",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS CNBC",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Yahoo Finance",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Nasdaq",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "RSS MarketWatch": {
-      "main": [[{"node": "Merge All", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Merge All",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "RSS WSJ": {
-      "main": [[{"node": "Merge All", "type": "main", "index": 1}]]
+      "main": [
+        [
+          {
+            "node": "Merge All",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
     },
     "RSS Investing.com": {
-      "main": [[{"node": "Merge All", "type": "main", "index": 2}]]
+      "main": [
+        [
+          {
+            "node": "Merge All",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
     },
     "RSS CNBC": {
-      "main": [[{"node": "Merge All", "type": "main", "index": 3}]]
+      "main": [
+        [
+          {
+            "node": "Merge All",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
     },
     "RSS Yahoo Finance": {
-      "main": [[{"node": "Merge All", "type": "main", "index": 4}]]
+      "main": [
+        [
+          {
+            "node": "Merge All",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
     },
     "RSS Nasdaq": {
-      "main": [[{"node": "Merge All", "type": "main", "index": 5}]]
+      "main": [
+        [
+          {
+            "node": "Merge All",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
     },
     "Merge All": {
-      "main": [[{"node": "Combine Data", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Combine Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Combine Data": {
-      "main": [[{"node": "Valid Data?", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Valid Data?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Valid Data?": {
       "main": [
-        [{"node": "Claude Editor", "type": "main", "index": 0}],
-        [{"node": "Error Alert", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Claude Editor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Claude Editor": {
-      "main": [[{"node": "Send DailyStockDigest", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Send DailyStockDigest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "availableInMCP": false
   },
-  "versionId": "dailystockdigest-v2",
+  "versionId": "6752d572-4a14-47cf-9c63-aa3337084f7f",
   "meta": {
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cef91389ce3e857d1842e81e9f91181fbdf557d670cbf1073bad4d740793fc57"
   },
-  "id": "dailystockdigest",
+  "id": "pQpjM5rS-_sAB8tlVtALo",
   "tags": []
 }
